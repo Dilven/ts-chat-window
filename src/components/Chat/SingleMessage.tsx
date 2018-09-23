@@ -25,6 +25,8 @@ const StyledMessage = styled('div')`
   background: #f3f7f9;
   border-radius: 20px;
   font-size: 14px;
+  display: inline-block;
+  text-align: left;
 `;
 
 const AdditionalInfo = styled('div')`

@@ -84,8 +84,7 @@ class App extends React.Component<{}, IState> {
           }
         });
 
-        this.setState({ messages: {...this.state.messages, ...newMessages }});
-        this.scrollToBottom();
+        this.setState({ messages: {...this.state.messages, ...newMessages }}, this.scrollToBottom);
       });
   }
 
