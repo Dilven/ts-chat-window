@@ -14,6 +14,7 @@ interface IState {
     [key: string]: IMessage
   };
   newMessage: string;
+  prevSrollHeight?: number;
 }
 
 // interface IProps {}
@@ -26,7 +27,8 @@ class App extends React.Component<{}, IState> {
     super(props);
     this.state = {
       messages: {},
-      newMessage: ''
+      newMessage: '',
+      prevSrollHeight: undefined
     }
   }
 
@@ -76,6 +78,11 @@ class App extends React.Component<{}, IState> {
   getMessages = async () => {
     const results = await db.collection("messages").orderBy("createAt", "asc")
     return results.onSnapshot(querySnapshot => {
+        if (this.messagesListRef && this.messagesListRef.current) {
+          this.setState({
+            prevSrollHeight: this.messagesListRef.current.scrollHeight
+          })
+        }
         const newMessages = {};
         querySnapshot.forEach(doc => {
           const { id } = doc
@@ -95,8 +102,9 @@ class App extends React.Component<{}, IState> {
 
   checkIfManuallyScrolled = () => {
     if (this.messagesListRef && this.messagesListRef.current) {
+      const { prevSrollHeight } = this.state;
       const { scrollHeight, clientHeight, scrollTop } = this.messagesListRef.current;
-      if (scrollTop !== scrollHeight - clientHeight) {
+      if (scrollTop !== (prevSrollHeight || scrollHeight) - clientHeight) {
         return true;
       }
       return false;
@@ -105,7 +113,7 @@ class App extends React.Component<{}, IState> {
   }
 
   scrollToBottom = (force = false) => {
-    if (force || this.checkIfManuallyScrolled()) {
+    if (force || !this.checkIfManuallyScrolled()) {
       if (this.messagesListRef && this.messagesListRef.current) {
         const { scrollHeight, clientHeight } = this.messagesListRef.current;
         this.messagesListRef.current.scrollTop = scrollHeight - clientHeight;
