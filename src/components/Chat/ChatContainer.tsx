@@ -14,7 +14,6 @@ interface IState {
     [key: string]: IMessage
   };
   newMessage: string;
-  isScrolledInitially: boolean;
 }
 
 // interface IProps {}
@@ -27,13 +26,13 @@ class App extends React.Component<{}, IState> {
     super(props);
     this.state = {
       messages: {},
-      newMessage: '',
-      isScrolledInitially: false
+      newMessage: ''
     }
   }
 
   async componentDidMount() {
     this.messagesListener = await this.getMessages();
+    this.scrollToBottom(true);
     document.addEventListener('keydown', this.onEnterPress);
   }
   
@@ -92,14 +91,22 @@ class App extends React.Component<{}, IState> {
     return Object.keys(messages).map(key => messages[key])
   }
 
+  checkIfManuallyScrolled = () => {
+    if (this.messagesListRef && this.messagesListRef.current) {
+      const { scrollHeight, clientHeight, scrollTop } = this.messagesListRef.current;
+      if (scrollTop !== scrollHeight - clientHeight) {
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+
   scrollToBottom = (force = false) => {
-    if (!this.state.isScrolledInitially || force) {
+    if (force || this.checkIfManuallyScrolled()) {
       if (this.messagesListRef && this.messagesListRef.current) {
-        const { scrollHeight } = this.messagesListRef.current;
-        this.messagesListRef.current.scrollTop = scrollHeight;
-        this.setState({
-          isScrolledInitially: true
-        })
+        const { scrollHeight, clientHeight } = this.messagesListRef.current;
+        this.messagesListRef.current.scrollTop = scrollHeight - clientHeight;
       }
     }
   }
