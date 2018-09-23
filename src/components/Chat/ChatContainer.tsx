@@ -1,13 +1,14 @@
 import * as React from 'react';
 import db from '../../firebase';
+import Button from '../Button';
+import ChatFooter from './ChatFooter';
 import ChatWindow from './ChatWindow';
+import IMessage from './MessageInterface';
 import MessagesList from './MessagesList';
+import SingleMessage from './SingleMessage';
 
 interface IState {
-  messages: Array<{
-    id: string,
-    message: string
-  }>
+  messages: IMessage[]
 }
 
 // interface IProps {}
@@ -60,9 +61,11 @@ class App extends React.Component<{}, IState> {
     return (
       <ChatWindow>
         <MessagesList>
-          {this.state.messages.map(item => <p key={item.id}>{item.message}</p>)}
+          {this.state.messages.map((item, index) => <SingleMessage own={index%2 === 0} key={item.id} data={item} />)}
         </MessagesList>
-        <button onClick={this.addMessage}>Send </button>
+        <ChatFooter>
+          <Button onClick={this.addMessage}>Send </Button>
+        </ChatFooter>
       </ChatWindow>
     );
   }
