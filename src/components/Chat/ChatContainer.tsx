@@ -6,9 +6,12 @@ import ChatWindow from './ChatWindow';
 import IMessage from './MessageInterface';
 import MessagesList from './MessagesList';
 import SingleMessage from './SingleMessage';
+import TextArea from '../TextArea';
+import KeyCodeEnum from './KeyCodeEnum';
 
 interface IState {
-  messages: IMessage[]
+  messages: IMessage[];
+  newMessage: string;
 }
 
 // interface IProps {}
@@ -19,31 +22,52 @@ class App extends React.Component<{}, IState> {
   constructor(props: {}) {
     super(props);
     this.state = {
-      messages: []
+      messages: [],
+      newMessage: ''
     }
   }
 
   async componentDidMount() {
     this.messagesListener = await this.getMessages();
+    document.addEventListener('keydown', this.onEnterPress);
   }
   
   componentWillUnmount() {
     if (this.messagesListener) {
       this.messagesListener();
     }
+
+    document.removeEventListener('keydown', this.onEnterPress)
   }
 
-  addMessage = () => {
-    db.collection('messages').add({
+  addMessage = async () => {
+    await db.collection('messages').add({
       createAt: Date.now(),
-      message: 'Yupi!',
+      message: this.state.newMessage,
       senderID: '2',
       senderName: 'Kamil'
     });
+    this.setState({
+      newMessage: ''
+    })
+  }
+
+  onEnterPress = (e: KeyboardEvent) => {
+    if (e.keyCode === KeyCodeEnum.Enter) {
+      e.preventDefault();
+      this.addMessage()
+    }
+  }
+
+  onNewMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const { value } = e.target;
+    this.setState({
+      newMessage: value
+    })
   }
 
   getMessages = async () => {
-    const results = await db.collection("messages")
+    const results = await db.collection("messages").orderBy("createAt", "asc")
     return results.onSnapshot(querySnapshot => {
         const messages: any = [];
         querySnapshot.forEach(doc => {
@@ -64,6 +88,7 @@ class App extends React.Component<{}, IState> {
           {this.state.messages.map((item, index) => <SingleMessage own={index%2 === 0} key={item.id} data={item} />)}
         </MessagesList>
         <ChatFooter>
+          <TextArea value={this.state.newMessage} onChange={this.onNewMessageChange} />
           <Button onClick={this.addMessage}>Send </Button>
         </ChatFooter>
       </ChatWindow>
