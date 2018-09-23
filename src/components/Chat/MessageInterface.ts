@@ -3,5 +3,5 @@ export default interface IMessage {
   message: string;
   senderID: string;
   senderName: string;
-  createdAt: number;
+  createAt: number;
 }

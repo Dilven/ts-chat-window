@@ -1,4 +1,5 @@
-import * as React from 'react';
+import React from 'react';
+import moment from 'moment';
 import styled, { StyledComponent } from 'react-emotion';
 import MessageInterface from './MessageInterface';
 
@@ -11,9 +12,10 @@ interface IProps extends IStyledProps {
   data: MessageInterface;
 }
 
-const MessageWrapper: StyledComponent<IStyledProps, {}, JSX.IntrinsicElements['div']> = styled('div')`
+const MessageWrapper: StyledComponent<IStyledProps, {}, JSX.IntrinsicElements['li']> = styled('li')`
   margin: 10px 0;
   max-width: 60%;
+  list-style: none;
   text-align: ${props => props.own ? 'right' : 'left'};
   align-self: ${props => props.own ? 'flex-end' : 'flex-start'};
 `;
@@ -25,16 +27,27 @@ const StyledMessage = styled('div')`
   font-size: 14px;
 `;
 
-const AuthorName = styled('div')`
+const AdditionalInfo = styled('div')`
   font-size: 12px;
-  color: #e2e2e2;
+  color: #424d57;
+  opacity: 0.7;
+  font-weight: 700;
+`;
+
+const CreateDate = styled('div')`
+  color: #424d57;
+  opacity: 0.5;
+  font-weight: 300;
 `;
 
 const SingleMessage: React.SFC<IProps> = props => {
   const { data, own } = props;
   return (
     <MessageWrapper own={own}>
-      <AuthorName>{data.senderName}</AuthorName>
+      <AdditionalInfo>
+        {data.senderName}
+        <CreateDate>{moment(data.createAt).fromNow()}</CreateDate>
+      </AdditionalInfo>
       <StyledMessage>{data.message}</StyledMessage>
     </MessageWrapper>
   );

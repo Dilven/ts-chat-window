@@ -12,18 +12,21 @@ import KeyCodeEnum from './KeyCodeEnum';
 interface IState {
   messages: IMessage[];
   newMessage: string;
+  isScrolledInitially: boolean;
 }
 
 // interface IProps {}
 
 class App extends React.Component<{}, IState> {
   messagesListener: any = null;
+  messagesListRef: React.RefObject<HTMLDivElement> = React.createRef();
   
   constructor(props: {}) {
     super(props);
     this.state = {
       messages: [],
-      newMessage: ''
+      newMessage: '',
+      isScrolledInitially: false
     }
   }
 
@@ -50,6 +53,7 @@ class App extends React.Component<{}, IState> {
     this.setState({
       newMessage: ''
     })
+    this.scrollToBottom(true)
   }
 
   onEnterPress = (e: KeyboardEvent) => {
@@ -78,13 +82,26 @@ class App extends React.Component<{}, IState> {
           });
         });
         this.setState({ messages });
+        this.scrollToBottom();
       });
+  }
+
+  scrollToBottom = (force = false) => {
+    if (!this.state.isScrolledInitially || force) {
+      if (this.messagesListRef && this.messagesListRef.current) {
+        const { scrollHeight } = this.messagesListRef.current;
+        this.messagesListRef.current.scrollTop = scrollHeight;
+        this.setState({
+          isScrolledInitially: true
+        })
+      }
+    }
   }
 
   render() {
     return (
       <ChatWindow>
-        <MessagesList>
+        <MessagesList innerRef={this.messagesListRef}>
           {this.state.messages.map((item, index) => <SingleMessage own={index%2 === 0} key={item.id} data={item} />)}
         </MessagesList>
         <ChatFooter>
