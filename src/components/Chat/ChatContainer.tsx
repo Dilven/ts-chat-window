@@ -45,16 +45,18 @@ class App extends React.Component<{}, IState> {
   }
 
   addMessage = async () => {
-    await db.collection('messages').add({
-      createAt: Date.now(),
-      message: this.state.newMessage,
-      senderID: '2',
-      senderName: 'Kamil'
-    });
-    this.setState({
-      newMessage: ''
-    })
-    this.scrollToBottom(true)
+    if (this.state.newMessage) {
+      await db.collection('messages').add({
+        createAt: Date.now(),
+        message: this.state.newMessage,
+        senderID: '2',
+        senderName: 'Kamil'
+      });
+      this.setState({
+        newMessage: ''
+      })
+      this.scrollToBottom(true)
+    }
   }
 
   onEnterPress = (e: KeyboardEvent) => {
