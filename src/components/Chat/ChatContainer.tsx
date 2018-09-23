@@ -10,7 +10,9 @@ import TextArea from '../TextArea';
 import KeyCodeEnum from './KeyCodeEnum';
 
 interface IState {
-  messages: IMessage[];
+  messages: {
+    [key: string]: IMessage
+  };
   newMessage: string;
   isScrolledInitially: boolean;
 }
@@ -24,7 +26,7 @@ class App extends React.Component<{}, IState> {
   constructor(props: {}) {
     super(props);
     this.state = {
-      messages: [],
+      messages: {},
       newMessage: '',
       isScrolledInitially: false
     }
@@ -73,17 +75,22 @@ class App extends React.Component<{}, IState> {
   getMessages = async () => {
     const results = await db.collection("messages").orderBy("createAt", "asc")
     return results.onSnapshot(querySnapshot => {
-        const messages: any = [];
+        const newMessages = {};
         querySnapshot.forEach(doc => {
-          const newMessage = doc.data();
-          messages.push({
-            ...newMessage, 
-            id: doc.id
-          });
+          const { id } = doc
+          const message = doc.data(); 
+          if (!this.state.messages[id]) {
+            newMessages[id] = { ...message, id }
+          }
         });
-        this.setState({ messages });
+
+        this.setState({ messages: {...this.state.messages, ...newMessages }});
         this.scrollToBottom();
       });
+  }
+
+  mapMessages = (messages: {[key: string]: IMessage}) => {
+    return Object.keys(messages).map(key => messages[key])
   }
 
   scrollToBottom = (force = false) => {
@@ -102,7 +109,9 @@ class App extends React.Component<{}, IState> {
     return (
       <ChatWindow>
         <MessagesList innerRef={this.messagesListRef}>
-          {this.state.messages.map((item, index) => <SingleMessage own={index%2 === 0} key={item.id} data={item} />)}
+          {this.mapMessages(this.state.messages).map((item, index) => (
+            <SingleMessage own={index%2 === 0} key={item.id} data={item} />
+          ))}
         </MessagesList>
         <ChatFooter>
           <TextArea value={this.state.newMessage} onChange={this.onNewMessageChange} />
