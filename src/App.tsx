@@ -4,12 +4,36 @@ import db from './firebase';
 
 import logo from './logo.svg';
 
-class App extends React.Component {
+interface IState {
+  messages: Array<{
+    id: string,
+    message: string
+  }>
+}
+
+// interface IProps {}
+
+class App extends React.Component<{}, IState> {
+  messagesListener: any = null;
   
-  state = {
-    messages: []
+  constructor(props: {}) {
+    super(props);
+    this.state = {
+      messages: []
+    }
   }
-  public addMessage = () => {
+
+  async componentDidMount() {
+    this.messagesListener = await this.getMessages();
+  }
+  
+  componentWillUnmount() {
+    if (this.messagesListener) {
+      this.messagesListener();
+    }
+  }
+
+  addMessage = () => {
     db.collection('messages').add({
       createAt: Date.now(),
       message: 'Yupi!',
@@ -17,7 +41,23 @@ class App extends React.Component {
       senderName: 'Kamil'
     });
   }
-  public render() {
+
+  getMessages = async () => {
+    const results = await db.collection("messages")
+    return results.onSnapshot(querySnapshot => {
+        const messages: any = [];
+        querySnapshot.forEach(doc => {
+          const newMessage = doc.data();
+          messages.push({
+            ...newMessage, 
+            id: doc.id
+          });
+        });
+        this.setState({ messages });
+      });
+  }
+
+  render() {
     return (
       <div className="App">
         <header className="App-header">
@@ -25,6 +65,7 @@ class App extends React.Component {
           <h1 className="App-title">Welcome to React</h1>
         </header>
         <button onClick={this.addMessage}>Send </button>
+        {this.state.messages.map(item => <p key={item.id}>{item.message}</p>)}
         <p className="App-intro">
           To get started, edit <code>src/App.tsx</code> and save to reload.
         </p>
