@@ -10,25 +10,31 @@ import TextArea from '../TextArea';
 import KeyCodeEnum from './KeyCodeEnum';
 
 interface IState {
-  messages: IMessage[];
+  messages: {
+    [key: string]: IMessage
+  };
   newMessage: string;
+  prevSrollHeight?: number;
 }
 
 // interface IProps {}
 
 class App extends React.Component<{}, IState> {
   messagesListener: any = null;
+  messagesListRef: React.RefObject<HTMLDivElement> = React.createRef();
   
   constructor(props: {}) {
     super(props);
     this.state = {
-      messages: [],
-      newMessage: ''
+      messages: {},
+      newMessage: '',
+      prevSrollHeight: undefined
     }
   }
 
   async componentDidMount() {
     this.messagesListener = await this.getMessages();
+    this.scrollToBottom(true);
     document.addEventListener('keydown', this.onEnterPress);
   }
   
@@ -41,15 +47,18 @@ class App extends React.Component<{}, IState> {
   }
 
   addMessage = async () => {
-    await db.collection('messages').add({
-      createAt: Date.now(),
-      message: this.state.newMessage,
-      senderID: '2',
-      senderName: 'Kamil'
-    });
-    this.setState({
-      newMessage: ''
-    })
+    if (this.state.newMessage) {
+      await db.collection('messages').add({
+        createAt: Date.now(),
+        message: this.state.newMessage,
+        senderID: '2',
+        senderName: 'Kamil'
+      });
+      this.setState({
+        newMessage: ''
+      })
+      this.scrollToBottom(true)
+    }
   }
 
   onEnterPress = (e: KeyboardEvent) => {
@@ -69,23 +78,56 @@ class App extends React.Component<{}, IState> {
   getMessages = async () => {
     const results = await db.collection("messages").orderBy("createAt", "asc")
     return results.onSnapshot(querySnapshot => {
-        const messages: any = [];
+        if (this.messagesListRef && this.messagesListRef.current) {
+          this.setState({
+            prevSrollHeight: this.messagesListRef.current.scrollHeight
+          })
+        }
+        const newMessages = {};
         querySnapshot.forEach(doc => {
-          const newMessage = doc.data();
-          messages.push({
-            ...newMessage, 
-            id: doc.id
-          });
+          const { id } = doc
+          const message = doc.data(); 
+          if (!this.state.messages[id]) {
+            newMessages[id] = { ...message, id }
+          }
         });
-        this.setState({ messages });
+
+        this.setState({ messages: {...this.state.messages, ...newMessages }}, this.scrollToBottom);
       });
+  }
+
+  mapMessages = (messages: {[key: string]: IMessage}) => {
+    return Object.keys(messages).map(key => messages[key])
+  }
+
+  checkIfManuallyScrolled = () => {
+    if (this.messagesListRef && this.messagesListRef.current) {
+      const { prevSrollHeight } = this.state;
+      const { scrollHeight, clientHeight, scrollTop } = this.messagesListRef.current;
+      if (scrollTop !== (prevSrollHeight || scrollHeight) - clientHeight) {
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+
+  scrollToBottom = (force = false) => {
+    if (force || !this.checkIfManuallyScrolled()) {
+      if (this.messagesListRef && this.messagesListRef.current) {
+        const { scrollHeight, clientHeight } = this.messagesListRef.current;
+        this.messagesListRef.current.scrollTop = scrollHeight - clientHeight;
+      }
+    }
   }
 
   render() {
     return (
       <ChatWindow>
-        <MessagesList>
-          {this.state.messages.map((item, index) => <SingleMessage own={index%2 === 0} key={item.id} data={item} />)}
+        <MessagesList innerRef={this.messagesListRef}>
+          {this.mapMessages(this.state.messages).map((item, index) => (
+            <SingleMessage own={index%2 === 0} key={item.id} data={item} />
+          ))}
         </MessagesList>
         <ChatFooter>
           <TextArea value={this.state.newMessage} onChange={this.onNewMessageChange} />
