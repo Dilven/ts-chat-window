@@ -1,19 +1,20 @@
 import * as React from 'react';
-import './App.css';
+import styled from 'react-emotion';
 import ChatContainer from './components/Chat/ChatContainer';
 
-import logo from './logo.svg';
+const AppWrapper = styled('div')`
+  display: flex;
+  justify-content: center;
+  background-color: #424d57;
+  height: 100vh;
+`;
 
 class App extends React.Component {
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-       <ChatContainer />
-      </div>
+      <AppWrapper className="Main">
+        <ChatContainer />
+      </AppWrapper>
     );
   }
 }
