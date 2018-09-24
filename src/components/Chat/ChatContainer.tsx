@@ -18,8 +18,6 @@ interface IState {
   prevSrollHeight?: number;
 }
 
-// interface IProps {}
-
 class App extends React.Component<{}, IState> {
   messagesListener: any = null;
   messagesListRef: React.RefObject<HTMLDivElement> = React.createRef();
@@ -96,7 +94,8 @@ class App extends React.Component<{}, IState> {
         });
 
         if (Object.keys(this.state.messages).length !== 0 && Object.keys(newMessages).length > 0)  {
-          const lastMessageAuthor = Object.keys(newMessages).map(key => newMessages[key].senderName)
+          const lastMessage = Object.keys(newMessages).map(key => newMessages[key])[Object.keys(newMessages).length - 1];
+          const lastMessageAuthor = lastMessage.senderName
           notificationService.desktopNotification({content: `New message from ${lastMessageAuthor}`});
         }
 
