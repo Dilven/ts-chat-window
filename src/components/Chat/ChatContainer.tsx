@@ -1,12 +1,13 @@
 import * as React from 'react';
-import db from '../../firebase';
-import Button from '../Button';
+import db from 'services/firebase';
+import notificationService from 'services/notificationService';
+import TextArea from 'components/TextArea';
+import Button from 'components/Button';
 import ChatFooter from './ChatFooter';
 import ChatWindow from './ChatWindow';
 import IMessage from './MessageInterface';
 import MessagesList from './MessagesList';
 import SingleMessage from './SingleMessage';
-import TextArea from '../TextArea';
 import KeyCodeEnum from './KeyCodeEnum';
 
 interface IState {
@@ -36,6 +37,8 @@ class App extends React.Component<{}, IState> {
     this.messagesListener = await this.getMessages();
     this.scrollToBottom(true);
     document.addEventListener('keydown', this.onEnterPress);
+
+    notificationService.requestDesktopNotificationPermission()
   }
   
   componentWillUnmount() {
@@ -91,6 +94,11 @@ class App extends React.Component<{}, IState> {
             newMessages[id] = { ...message, id }
           }
         });
+
+        if (Object.keys(this.state.messages).length !== 0 && Object.keys(newMessages).length > 0)  {
+          const lastMessageAuthor = Object.keys(newMessages).map(key => newMessages[key].senderName)
+          notificationService.desktopNotification({content: `New message from ${lastMessageAuthor}`});
+        }
 
         this.setState({ messages: {...this.state.messages, ...newMessages }}, this.scrollToBottom);
       });
