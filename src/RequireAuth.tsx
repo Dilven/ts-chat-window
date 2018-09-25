@@ -1,13 +1,13 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import Auth from './Auth';
 
-interface IState {
+interface IAuthenticateState {
   isLogged: boolean
 }
 
-export default function<P, IState>(ComposedComponent: React.ComponentType<P>): React.ComponentType<P> {
-  class Authenticate extends Component<P> {
-    constructor(props: P) {
+export default function(ComposedComponent: React.ComponentType): React.ComponentType {
+  return class Authenticate extends Component<{}, IAuthenticateState> {
+    constructor(props: {}) {
       super(props);
       this.state = {
         isLogged: false,
@@ -15,18 +15,27 @@ export default function<P, IState>(ComposedComponent: React.ComponentType<P>): R
     }
 
     componentWillMount() {
-      if(localStorage.userID) {
+      if(localStorage.username) {
         this.setState({isLogged: true})
       }
+    }
+    
+    handleSingIn = (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const username = e.currentTarget[0].value
+      localStorage.setItem('username', username);
+      this.setState({ isLogged: true })
     }
 
     render() {
       return (
-        {this.state.isLogged ? 
-          <ComposedComponent/>
-          :
-          <Auth />
-        }
+        <Fragment>
+          {this.state.isLogged ? 
+            <ComposedComponent/>
+            :
+            <Auth singIn={this.handleSingIn}/>
+          }
+        </Fragment>
       )
     }
   }

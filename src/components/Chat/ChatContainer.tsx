@@ -54,7 +54,7 @@ class App extends React.Component<{}, IState> {
         createAt: Date.now(),
         message: this.state.newMessage,
         senderID: '2',
-        senderName: 'Kamil'
+        senderName: localStorage.getItem('username')
       });
       this.setState({
         newMessage: ''
