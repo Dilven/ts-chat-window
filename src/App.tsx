@@ -6,6 +6,7 @@ const AppWrapper = styled('div')`
   display: flex;
   justify-content: center;
   background-color: #424d57;
+  height: 100vh;
 `;
 
 class App extends React.Component {

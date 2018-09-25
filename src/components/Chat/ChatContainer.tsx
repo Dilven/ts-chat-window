@@ -9,6 +9,7 @@ import IMessage from './MessageInterface';
 import MessagesList from './MessagesList';
 import SingleMessage from './SingleMessage';
 import KeyCodeEnum from './KeyCodeEnum';
+import RequireAuth from '../../RequireAuth'
 
 interface IState {
   messages: {
@@ -53,7 +54,7 @@ class App extends React.Component<{}, IState> {
         createAt: Date.now(),
         message: this.state.newMessage,
         senderID: '2',
-        senderName: 'Kamil'
+        senderName: localStorage.getItem('username')
       });
       this.setState({
         newMessage: ''
@@ -145,4 +146,4 @@ class App extends React.Component<{}, IState> {
   }
 }
 
-export default App;
+export default RequireAuth(App);
