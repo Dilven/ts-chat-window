@@ -9,7 +9,7 @@ import IMessage from './MessageInterface';
 import MessagesList from './MessagesList';
 import SingleMessage from './SingleMessage';
 import KeyCodeEnum from './KeyCodeEnum';
-import RequireAuth from '../../RequireAuth'
+import requireAuth from '../../requireAuth'
 
 interface IState {
   messages: {
@@ -146,4 +146,4 @@ class App extends React.Component<{}, IState> {
   }
 }
 
-export default RequireAuth(App);
+export default requireAuth(App);
