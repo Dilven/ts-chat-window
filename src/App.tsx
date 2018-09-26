@@ -3,13 +3,13 @@ import styled from 'react-emotion';
 import {
   BrowserRouter as Router,
   Route,
-  Link,
-  Redirect
+  Redirect,
+  Link
   // withRouter
 } from "react-router-dom";
+import {AuthProvider, AuthConsumer} from "react-check-auth";
 import ChatContainer from 'components/Chat/ChatContainer';
 import Login from 'components/Login';
-import authService from './authService';
 
 const AppWrapper = styled('div')`
   display: flex;
@@ -18,45 +18,59 @@ const AppWrapper = styled('div')`
   height: 100vh;
 `;
 
-const PrivateRoute = ({ component: Component, ...rest }) => (
-  <Route
-    {...rest}
-    render={props =>
-      authService.isAuthenticated ? (
-        <Component {...props} />
-      ) : (
-        <Redirect
-          to={{
-            pathname: "/login",
-            state: { from: props.location }
-          }}
-        />
-      )
-    }
-  />
+const Header = () => (
+  <div>
+    <AuthConsumer> 
+      {({userInfo}) => ( 
+        userInfo ?
+          (<Link to='/chats'>chats</Link>) :
+          (<a href="/login">Login</a>)
+      )}
+     </AuthConsumer>
+  </div>
 );
 
-class App extends React.Component {
-  componentDidMount() {
-    authService.check()
-  }
+const Chats = () => {
+  return (
+    <AuthConsumer>
+      {({userInfo, isLoading}) => {
+        console.log(userInfo)
+        if (isLoading) {
+          return <div>Loading...</div>
+        }
+        if (!userInfo) {
+          console.log('not userinfo')
+           return (<Redirect to='/login' />);
+        }
+        console.log('userinfo')
+        return (<ChatContainer />);
+      }}
+    </AuthConsumer>
+  );
+}
 
+
+class App extends React.Component {
   render() {
+    const reqOptions = { 
+      'method': 'GET',
+      'headers': {
+        'Content-Type': 'application/json',
+        'autorization': 'none',
+        'Access-Control-Allow-Origin': '*'
+      },  
+    }; 
+
     return (
-      <Router>
-        <AppWrapper className="Main">
-          <ul>
-            <li>
-              <Link to="/">Chats Page</Link>
-            </li>
-            <li>
-              <Link to="/login">Login Page</Link>
-            </li>
-          </ul>
-          <PrivateRoute exact={true} path="/" component={ChatContainer} />
-          <Route path="/login" component={Login} />
-        </AppWrapper>
-      </Router>
+      <AuthProvider authUrl={`http://localhost:9000/users/me?access_token=${localStorage.getItem('token')}`} reqOptions={reqOptions}>
+        <Router>
+          <AppWrapper className="Main">
+            <Header />
+            <Route exact={true} path="/chats" component={Chats} />
+            <Route path="/login" component={Login} />
+          </AppWrapper>
+        </Router>
+      </AuthProvider>
     );
   }
 }
