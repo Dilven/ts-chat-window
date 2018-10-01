@@ -1,6 +1,9 @@
 import * as React from 'react';
 import styled from 'react-emotion';
+import { BrowserRouter as Router, Route } from "react-router-dom";
+import { Switch } from 'react-router';
 import ChatContainer from './components/Chat/ChatContainer';
+import AuthPage from './components/AuthPage';
 
 const AppWrapper = styled('div')`
   display: flex;
@@ -12,9 +15,14 @@ const AppWrapper = styled('div')`
 class App extends React.Component {
   render() {
     return (
-      <AppWrapper className="Main">
-        <ChatContainer />
-      </AppWrapper>
+      <Router>
+        <AppWrapper className="Main">
+          <Switch>
+            <Route exact={true} path="/" component={ChatContainer} />
+            <Route exact={true} path="/auth" component={AuthPage} />
+          </Switch>
+        </AppWrapper>
+      </Router>
     );
   }
 }
