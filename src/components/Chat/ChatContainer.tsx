@@ -9,7 +9,7 @@ import IMessage from './MessageInterface';
 import MessagesList from './MessagesList';
 import SingleMessage from './SingleMessage';
 import KeyCodeEnum from './KeyCodeEnum';
-import requireAuth from '../../requireAuth'
+import requireAuth from '../../requireAuth';
 
 interface IState {
   messages: {
@@ -53,8 +53,8 @@ class App extends React.Component<{}, IState> {
       await db.collection('messages').add({
         createAt: Date.now(),
         message: this.state.newMessage,
-        senderID: '2',
-        senderName: localStorage.getItem('username')
+        senderID: localStorage.getItem('userId'),
+        senderName: localStorage.getItem('userName')
       });
       this.setState({
         newMessage: ''
